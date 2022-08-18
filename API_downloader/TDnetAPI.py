@@ -2,15 +2,19 @@ import time
 import requests
 import json
 import random
+import configparser
 
-def get_data(limit_size=300):
-    url = "https://webapi.yanoshin.jp/webapi/tdnet/list/"
+config = configparser.ConfigParser()
+config.read("config.ini")
 
-    condition = "20220305-20220422"
-    format = "json"
-    query = f"limit={str(limit_size)}"
 
-    res = requests.get(f"{url}{condition}.{format}?{query}")
+def get_data():
+    TDnet_url = config["TDnetAPI"]["TDnet_url"]
+    condition = config["TDnetAPI"]["condition"]
+    format = config["TDnetAPI"]["format"]
+    query = config["TDnetAPI"]["query"]
+
+    res = requests.get(f"{TDnet_url}{condition}.{format}?{query}")
 
     response_loads = json.loads(res.content)
 

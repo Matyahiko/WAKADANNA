@@ -9,13 +9,15 @@ from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import ShuffleSplit
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, KFold
+import pickle
 
 from utils import plot_learning_curve
 
 
 def cleaning_tokenize_split(dataset_path):
     df = pd.read_csv(dataset_path, sep="\t")
+
     df.columns = ["date", "id", "text", "label"]
     df = df * 1
     text = df["text"]
@@ -29,8 +31,8 @@ def cleaning_tokenize_split(dataset_path):
         if df["label"].iloc[i] == -1:
             df["label"][i] = 0
 
-    # シャッフル
-    df = df.sample(frac=1, random_state=1)
+    # シャッフルとテストデータの抜きだし
+    df = df.sample(frac=0.3, random_state=1)
 
     X = df["text"].values
     Y = df["label"].values
@@ -40,7 +42,7 @@ def cleaning_tokenize_split(dataset_path):
     tokenize = None
     preprocessor = None
 
-    vectorizer = TfidfVectorizer(max_features=1000, lowercase=lowercase, tokenizer=tokenize, preprocessor=preprocessor)
+    vectorizer = TfidfVectorizer(lowercase=lowercase, tokenizer=tokenize, preprocessor=preprocessor)
 
     X = vectorizer.fit_transform(X)
 
@@ -48,7 +50,7 @@ def cleaning_tokenize_split(dataset_path):
     # x_test_vec = vectorizer.fit_transform(x_test)
 
     x_train_vec, x_test_vec, y_train, y_test = train_test_split(X, Y,
-                                                                test_size=0.2, random_state=1)
+                                                                test_size=0.2, random_state=0)
 
     x_train_vec = np.nan_to_num(np.array(x_train_vec.todense()))
     x_test_vec = np.nan_to_num(np.array(x_test_vec.todense()))
@@ -73,9 +75,8 @@ def train_and_eval():
 
     x_train_vec, x_test_vec, y_train, y_test = cleaning_tokenize_split(dataset_path)
 
-    # clf = LogisticRegression(solver="liblinear",penalty="l2",C=0.1)
-    # clf.fit(x_train_vec, y_train)
-    clf = svm.SVC()
+    clf = LogisticRegression(solver="liblinear", penalty="l2", C=0.1)
+    # clf = svm.SVC()
 
     # k分割交差検証
     scores = cross_val_score(clf, x_train_vec, y_train, cv=10)
@@ -85,6 +86,10 @@ def train_and_eval():
     y_predict = clf.predict(x_test_vec)
     score = accuracy_score(y_test, y_predict)
     print("accuracy_score " + "{:.4f}".format(score))
+
+    # 暫定モデルの保存
+    with open("C:\\Users\\hiroyuki\\Desktop\\same\\model\\Preliminary_Model", mode='wb') as f:
+        pickle.dump(clf, f, protocol=2)
 
     # 学習曲線を描画する関数 utils.pyにある
     title = "learning curve"
