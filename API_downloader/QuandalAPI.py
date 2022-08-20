@@ -9,7 +9,7 @@ import configparser
 def get_data(code, start_date, end_date):
     try:
 
-        data = quandl.get(code,date = { "gte": f"start_date", "lte": f"end_date" })
+        data = quandl.get(code, date={"gte": f"start_date", "lte": f"end_date"})
         sleep_time = np.random.randint(6, 15)
         time.sleep(sleep_time)
         print(data)
@@ -42,4 +42,3 @@ for i in range(len(data_list_code)):
         data_list["data"][i] = None
         pass
 """
-
